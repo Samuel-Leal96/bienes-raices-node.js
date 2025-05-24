@@ -8,7 +8,7 @@ import db from './config/db.js'
 const app = express()
 
 //*Habilitar lectura de datos de formularios
-app.use( express.urlencoded({extended: true}) )
+app.use( express.urlencoded({extended: true}) ) //* Permite que Express lea los datos enviados por formularios HTML y los deje disponibles en req.body.
 
 //* Conexion a la base de datos
 try {
