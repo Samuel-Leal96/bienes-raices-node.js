@@ -8,30 +8,30 @@ block contenido
 
         div(class="mt-8 mx-auto max-w-md")
             div(class="bg-white py-8 px-4 shadow")
-                form(class="space-y-5")
+                form(class="space-y-5" method="POST" action="/auth/registro")
                     div
-                        label(class="block text-sm uppercase text-gray-600 mb-2 font-bold")(for="nombre") Tu nombre
+                        label(class="block text-sm uppercase text-gray-600 mb-2 font-bold" for="nombre") Tu nombre
                         input#nombre(
                             type="text" 
                             name="nombre"
                             class="w-full px-3 py-2 border border-gray-300 rounded-md placeholder-gray-400" 
                             placeholder="Tu Nombre")
                     div
-                        label(class="block text-sm uppercase text-gray-600 mb-2 font-bold")(for="email") Email de registro
+                        label(class="block text-sm uppercase text-gray-600 mb-2 font-bold" for="email") Email de registro
                         input#email(
                             type="email" 
                             name="email"
                             class="w-full px-3 py-2 border border-gray-300 rounded-md placeholder-gray-400" 
                             placeholder="Tu correo electrónico")
                     div
-                        label(class="block text-sm uppercase text-gray-600 mb-2 font-bold")(for="password") Password
+                        label(class="block text-sm uppercase text-gray-600 mb-2 font-bold" for="password") Password
                         input#password(
                             type="password" 
                             name="password"
                             class="w-full px-3 py-2 border border-gray-300 rounded-md placeholder-gray-400" 
                             placeholder="Tu contraseña")
                     div
-                        label(class="block text-sm uppercase text-gray-600 mb-2 font-bold")(for="repetir_password") Repetir Passord
+                        label(class="block text-sm uppercase text-gray-600 mb-2 font-bold" for="repetir_password") Repetir Passord
                         input#repetir_password(
                             type="password" 
                             name="repetir_password"
