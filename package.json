@@ -3,11 +3,12 @@
   "version": "1.0.0",
   "description": "Mi primer proyecto de fullstack",
   "main": "index.js",
-  "type": "module", 
+  "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node index.js",
-    "server": "nodemon index.js"
+    "server": "nodemon index.js",
+    "css": "postcss public/css/tailwind.css -o public/css/app.css"
   },
   "keywords": [
     "MVC",
@@ -19,9 +20,14 @@
   "author": "Samuel Leal",
   "license": "ISC",
   "dependencies": {
-    "express": "^5.1.0"
+    "express": "^5.1.0",
+    "pug": "^3.0.3"
   },
   "devDependencies": {
-    "nodemon": "^3.1.10"
+    "autoprefixer": "^10.4.21",
+    "nodemon": "^3.1.10",
+    "postcss": "^8.5.3",
+    "postcss-cli": "^11.0.1",
+    "tailwindcss": "^3.4.17"
   }
 }

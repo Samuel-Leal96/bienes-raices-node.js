@@ -6,8 +6,15 @@ import usuarioRoutes from './routes/usuarioRoutes.js'
 //* Crear la app
 const app = express()
 
+//* Habilitar PUG en express
+app.set('view engine', 'pug') //* Asignamos el tipo de enginge template
+app.set('views', './views') //* Declaramos la carpeta que tendra las vistas
+
+//*Carpeta publica donde se encuentran los archivos CSS,imagenes y demas
+app.use( express.static('public') )
+
 //* Routing
-app.use('/', usuarioRoutes) //* el metodo use busca todas las rutas que inicien con una diagonal a diferencia de get que usa la ruta especifica.
+app.use('/auth', usuarioRoutes) //* el metodo use busca todas las rutas que inicien con una diagonal a diferencia de get que usa la ruta especifica.
 
 //* Definir un puerto y arrancar el proyecto
 const port = 3000;
