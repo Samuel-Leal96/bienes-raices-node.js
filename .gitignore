@@ -1,0 +1,5 @@
+# Ignorar entorno de desarrollo
+.env
+
+# Ignorar dependencias
+node_modules/
