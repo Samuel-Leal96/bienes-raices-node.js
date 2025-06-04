@@ -2,6 +2,7 @@ import { check, validationResult } from 'express-validator'
 import Usuario from '../models/Usuario.js'
 import { generarId } from '../helpers/tokens.js'
 import { emailRegistro, emailOlvidePassword } from '../helpers/emails.js'
+import bcrypt from 'bcrypt'
 
 import Tokens from 'csrf';
 const tokens = new Tokens();
@@ -196,7 +197,7 @@ const comprobarToken = async (req, res) => {
     })
 }
 
-const nuevoPassword = (req, res) => {
+const nuevoPassword = async (req, res) => {
 
     const csrfSecret = req.session.csrfSecret;
     const tokenFromForm = req.body._csrf;
@@ -209,8 +210,38 @@ const nuevoPassword = (req, res) => {
             error: true
         })
     }
+
+    //* Validar el password
+    await check('password').isLength({ min: 6 }).withMessage('El password debe ser de al menos 6 caracteres').run(req);
+    await check('repetir_password').equals(req.body.password).withMessage('Los password no son iguales').run(req);
+
+    let resultado = validationResult(req); //* Me da el resultado de la validación 
+
+    if (!resultado.isEmpty()) { //* Quiere decir que hay inputs que no pasaron la validación
+        return res.render('auth/reset-password', {
+            pagina: 'Restablece tu password',
+            errores: resultado.array()
+        })
+    }
+
+    const { token } = req.params;
+    const { password } = req.body;
     
-    console.log('Guardando password...');
+    //* Identificar quien hace el password
+    const usuario = await Usuario.findOne( { where: { token } } );
+
+    //* Hashear el nuevo password
+    const salt = await bcrypt.genSalt(10);
+    usuario.password = await bcrypt.hash(password, salt);
+    usuario.token = null;
+
+    await usuario.save();
+
+    res.render('auth/confirmar-cuenta',{
+        pagina: 'Contraseña restablecida',
+        mensaje: 'La contraseña se guardo correctamente'
+    })
+
 }
 
 
