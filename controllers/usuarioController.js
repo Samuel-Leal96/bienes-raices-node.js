@@ -191,7 +191,6 @@ const comprobarToken = async (req, res) => {
     }
 
     //* Mostrar formulario para modificar el password
-
     res.render('auth/reset-password',{
         pagina: 'Restablece tu password',
     })
