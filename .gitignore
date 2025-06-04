@@ -1,5 +1,8 @@
-# Ignorar entorno de desarrollo
+#* Ignorar entorno de desarrollo
 .env
 
-# Ignorar dependencias
+#* Ignorar dependencias
 node_modules/
+
+#* Ignorar historial de cambios
+.history/

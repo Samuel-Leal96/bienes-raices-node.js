@@ -1,7 +1,8 @@
 import { check, validationResult } from 'express-validator'
 import Usuario from '../models/Usuario.js'
 import { generarId } from '../helpers/tokens.js'
-import { emailRegistro } from '../helpers/emails.js'
+import { emailRegistro, emailOlvidePassword } from '../helpers/emails.js'
+import bcrypt from 'bcrypt'
 
 import Tokens from 'csrf';
 const tokens = new Tokens();
@@ -129,11 +130,128 @@ const formularioOlvidePassword = (req, res) => {
     })
 }
 
+const resetPassword = async (req, res) => {
+    //*Validacion del email
+    await check('email').isEmail().withMessage('Eso no parece un email').run(req);
+
+    let resultado = validationResult(req); //* Me da el resultado de la validación 
+
+    if (!resultado.isEmpty()) { //* Quiere decir que hay inputs que no pasaron la validación
+        return res.render('auth/olvide-password', {
+            pagina: 'Recupera tu acceso',
+            errores: resultado.array()
+        })
+    }
+
+    //* Buscar usuario
+    const { email } = req.body
+
+    const usuario = await Usuario.findOne({ where: {email} })
+
+    if(!usuario){
+        return res.render('auth/olvide-password', {
+            pagina: 'Recupera tu acceso',
+            errores: [{ msg: 'Email no registrado con algun usuario'}]
+        })
+    }
+
+    //* Generar un token y enviar el email
+    usuario.token = generarId();
+
+    await usuario.save();
+
+    //*Enviar un email
+    emailOlvidePassword({
+        nombre: usuario.nombre,
+        email: usuario.email,
+        token: usuario.token
+
+    })
+
+    //* Renderizar mensaje
+    res.render('templates/mensaje', {
+        pagina: 'Restablece tu password',
+        mensaje: 'Hemos enviado un email con las instrucciones para recuperar tu password, presiona en el enlace'
+    })
+
+}
+
+const comprobarToken = async (req, res) => {
+
+    const {token} = req.params;
+
+    const usuario = await Usuario.findOne( {where: {token} } )
+
+    if (!usuario) {
+        return res.render('auth/confirmar-cuenta', {
+            pagina: 'Restablece tu password',
+            mensaje: 'Hubo un error al validar tu información, intenta de nuevo',
+            error: true
+        })
+    }
+
+    //* Mostrar formulario para modificar el password
+
+    res.render('auth/reset-password',{
+        pagina: 'Restablece tu password',
+    })
+}
+
+const nuevoPassword = async (req, res) => {
+
+    const csrfSecret = req.session.csrfSecret;
+    const tokenFromForm = req.body._csrf;
+
+    if (!tokens.verify(csrfSecret, tokenFromForm)) {
+        //* Mostrar mensaje de usuario no autenticado
+        return res.render('templates/mensaje', {
+            pagina: 'Usuario no autenticado',
+            mensaje: 'Hubo un problema al querer autenticar al usuario al mandar la información, intente nuevamente',
+            error: true
+        })
+    }
+
+    //* Validar el password
+    await check('password').isLength({ min: 6 }).withMessage('El password debe ser de al menos 6 caracteres').run(req);
+    await check('repetir_password').equals(req.body.password).withMessage('Los password no son iguales').run(req);
+
+    let resultado = validationResult(req); //* Me da el resultado de la validación 
+
+    if (!resultado.isEmpty()) { //* Quiere decir que hay inputs que no pasaron la validación
+        return res.render('auth/reset-password', {
+            pagina: 'Restablece tu password',
+            errores: resultado.array()
+        })
+    }
+
+    const { token } = req.params;
+    const { password } = req.body;
+    
+    //* Identificar quien hace el password
+    const usuario = await Usuario.findOne( { where: { token } } );
+
+    //* Hashear el nuevo password
+    const salt = await bcrypt.genSalt(10);
+    usuario.password = await bcrypt.hash(password, salt);
+    usuario.token = null;
+
+    await usuario.save();
+
+    res.render('auth/confirmar-cuenta',{
+        pagina: 'Contraseña restablecida',
+        mensaje: 'La contraseña se guardo correctamente'
+    })
+
+}
+
 
 export {
     formularioLogin,
     formularioRegistro,
     registrar,
     confirmar,
-    formularioOlvidePassword
+    formularioOlvidePassword,
+    resetPassword,
+    comprobarToken,
+    nuevoPassword
 }
