@@ -20,7 +20,7 @@ app.use(session({
 }));
 
 //*Habilitar lectura de datos de formularios
-app.use(express.urlencoded({ extended: true })) //* Permite que Express lea los datos enviados por formularios HTML y los deje disponibles en req.body.
+app.use( express.urlencoded({extended: true}) ) //* Permite que Express lea los datos enviados por formularios HTML y los deje disponibles en req.body.
 
 //* Conexion a la base de datos
 try {
