@@ -129,11 +129,39 @@ const formularioOlvidePassword = (req, res) => {
     })
 }
 
+const resetPassword = async (req, res) => {
+    //*Validacion del email
+    await check('email').isEmail().withMessage('Eso no parece un email').run(req);
+
+    let resultado = validationResult(req); //* Me da el resultado de la validación 
+
+    if (!resultado.isEmpty()) { //* Quiere decir que hay inputs que no pasaron la validación
+        return res.render('auth/olvide-password', {
+            pagina: 'Recupera tu acceso',
+            errores: resultado.array()
+        })
+    }
+
+    //* Buscar usuario
+    const { email } = req.body
+
+    const usuario = await Usuario.findOne({ where: {email} })
+
+    if(!usuario){
+        return res.render('auth/olvide-password', {
+            pagina: 'Recupera tu acceso',
+            errores: [{ msg: 'Email no registrado con algun usuario'}]
+        })
+    }
+
+}
+
 
 export {
     formularioLogin,
     formularioRegistro,
     registrar,
     confirmar,
-    formularioOlvidePassword
+    formularioOlvidePassword,
+    resetPassword
 }
