@@ -189,10 +189,28 @@ const comprobarToken = async (req, res) => {
         })
     }
 
+    //* Mostrar formulario para modificar el password
+
+    res.render('auth/reset-password',{
+        pagina: 'Restablece tu password',
+    })
 }
 
 const nuevoPassword = (req, res) => {
 
+    const csrfSecret = req.session.csrfSecret;
+    const tokenFromForm = req.body._csrf;
+
+    if (!tokens.verify(csrfSecret, tokenFromForm)) {
+        //* Mostrar mensaje de usuario no autenticado
+        return res.render('templates/mensaje', {
+            pagina: 'Usuario no autenticado',
+            mensaje: 'Hubo un problema al querer autenticar al usuario al mandar la información, intente nuevamente',
+            error: true
+        })
+    }
+    
+    console.log('Guardando password...');
 }
 
 
