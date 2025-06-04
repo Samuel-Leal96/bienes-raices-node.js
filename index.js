@@ -43,8 +43,9 @@ app.use(async (req, res, next) => {
     if (!req.session.csrfSecret) {
         req.session.csrfSecret = await tokens.secret();
     }
-    res.locals.csrfToken = tokens.create(req.session.csrfSecret); // Disponible en las vistas PUG
-    // req.csrfToken = res.locals.csrfToken; // Disponible en controladores
+
+    //* Creacion del token a utilizar en los forms de las vistas pug
+    res.locals.csrfToken = tokens.create(req.session.csrfSecret);
     next();
 });
 

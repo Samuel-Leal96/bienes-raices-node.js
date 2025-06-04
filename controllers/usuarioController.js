@@ -3,14 +3,35 @@ import Usuario from '../models/Usuario.js'
 import { generarId } from '../helpers/tokens.js'
 import { emailRegistro, emailOlvidePassword } from '../helpers/emails.js'
 import bcrypt from 'bcrypt'
-
-import Tokens from 'csrf';
-const tokens = new Tokens();
+import { csrfAutenticate } from '../helpers/csrf-autenticate.js'
 
 const formularioLogin = (req, res) => {
     res.render('auth/login', {
         pagina: 'Iniciar sesión'
     })
+}
+
+const autenticar = async (req, res) => {
+
+    await check('email').isEmail().withMessage('El email es obligatorio').run(req);
+    await check('password').notEmpty().withMessage('El password es obligatorio').run(req);
+
+    let resultado = validationResult(req); //* Me da el resultado de la validación 
+
+    if (!resultado.isEmpty()) { //* Quiere decir que hay inputs que no pasaron la validación
+        return res.render('auth/login', {
+            pagina: 'Iniciar sesión',
+            errores: resultado.array()
+        })
+    }
+
+    const autenticate = csrfAutenticate(req, res)
+
+    if (!autenticate) {
+        return
+    }
+
+    console.log('Autenticando...');
 }
 
 const formularioRegistro = async (req, res) => {
@@ -40,16 +61,10 @@ const registrar = async (req, res) => {
         })
     }
 
-    const csrfSecret = req.session.csrfSecret;
-    const tokenFromForm = req.body._csrf;
+    const autenticate = csrfAutenticate(req, res)
 
-    if (!tokens.verify(csrfSecret, tokenFromForm)) {
-        //* Mostrar mensaje de usuario no autenticado
-        return res.render('templates/mensaje', {
-            pagina: 'Usuario no autenticado',
-            mensaje: 'Hubo un problema al querer autenticar al usuario al mandar la información, intente nuevamente',
-            error: true
-        })
+    if (!autenticate) {
+        return
     }
 
     //* Extraemos la información con desestructuración 
@@ -146,12 +161,12 @@ const resetPassword = async (req, res) => {
     //* Buscar usuario
     const { email } = req.body
 
-    const usuario = await Usuario.findOne({ where: {email} })
+    const usuario = await Usuario.findOne({ where: { email } })
 
-    if(!usuario){
+    if (!usuario) {
         return res.render('auth/olvide-password', {
             pagina: 'Recupera tu acceso',
-            errores: [{ msg: 'Email no registrado con algun usuario'}]
+            errores: [{ msg: 'Email no registrado con algun usuario' }]
         })
     }
 
@@ -178,9 +193,9 @@ const resetPassword = async (req, res) => {
 
 const comprobarToken = async (req, res) => {
 
-    const {token} = req.params;
+    const { token } = req.params;
 
-    const usuario = await Usuario.findOne( {where: {token} } )
+    const usuario = await Usuario.findOne({ where: { token } })
 
     if (!usuario) {
         return res.render('auth/confirmar-cuenta', {
@@ -191,23 +206,17 @@ const comprobarToken = async (req, res) => {
     }
 
     //* Mostrar formulario para modificar el password
-    res.render('auth/reset-password',{
+    res.render('auth/reset-password', {
         pagina: 'Restablece tu password',
     })
 }
 
 const nuevoPassword = async (req, res) => {
 
-    const csrfSecret = req.session.csrfSecret;
-    const tokenFromForm = req.body._csrf;
+    const autenticate = csrfAutenticate(req, res)
 
-    if (!tokens.verify(csrfSecret, tokenFromForm)) {
-        //* Mostrar mensaje de usuario no autenticado
-        return res.render('templates/mensaje', {
-            pagina: 'Usuario no autenticado',
-            mensaje: 'Hubo un problema al querer autenticar al usuario al mandar la información, intente nuevamente',
-            error: true
-        })
+    if (!autenticate) {
+        return
     }
 
     //* Validar el password
@@ -225,9 +234,9 @@ const nuevoPassword = async (req, res) => {
 
     const { token } = req.params;
     const { password } = req.body;
-    
+
     //* Identificar quien hace el password
-    const usuario = await Usuario.findOne( { where: { token } } );
+    const usuario = await Usuario.findOne({ where: { token } });
 
     //* Hashear el nuevo password
     const salt = await bcrypt.genSalt(10);
@@ -236,7 +245,7 @@ const nuevoPassword = async (req, res) => {
 
     await usuario.save();
 
-    res.render('auth/confirmar-cuenta',{
+    res.render('auth/confirmar-cuenta', {
         pagina: 'Contraseña restablecida',
         mensaje: 'La contraseña se guardo correctamente'
     })
@@ -246,6 +255,7 @@ const nuevoPassword = async (req, res) => {
 
 export {
     formularioLogin,
+    autenticar,
     formularioRegistro,
     registrar,
     confirmar,
