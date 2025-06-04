@@ -1,5 +1,10 @@
-import {check, validationResult} from 'express-validator'
+import { check, validationResult } from 'express-validator'
 import Usuario from '../models/Usuario.js'
+import { generarId } from '../helpers/tokens.js'
+import { emailRegistro } from '../helpers/emails.js'
+
+import Tokens from 'csrf';
+const tokens = new Tokens();
 
 const formularioLogin = (req, res) => {
     res.render('auth/login', {
@@ -7,27 +12,115 @@ const formularioLogin = (req, res) => {
     })
 }
 
-const formularioRegistro = (req, res) => {
+const formularioRegistro = async (req, res) => {
     res.render('auth/registro', {
-        pagina: 'Crear cuenta'
+        pagina: 'Crear cuenta',
     })
 }
 
-const registrar = async(req, res) => {
+const registrar = async (req, res) => {
 
     //*Validacion por cada input
     await check('nombre').notEmpty().withMessage('El nombre no puede ir vacio').run(req);
     await check('email').isEmail().withMessage('Eso no parece un email').run(req);
-    await check('password').isLength({min: 6}).withMessage('El password debe ser de al menos 6 caracteres').run(req);
-    await check('repetir_password').equals('password').withMessage('Los password no son iguales').run(req);
+    await check('password').isLength({ min: 6 }).withMessage('El password debe ser de al menos 6 caracteres').run(req);
+    await check('repetir_password').equals(req.body.password).withMessage('Los password no son iguales').run(req);
 
-    let resultado = validationResult(req);
+    let resultado = validationResult(req); //* Me da el resultado de la validación 
 
-    res.json(resultado.array());
+    if (!resultado.isEmpty()) { //* Quiere decir que hay inputs que no pasaron la validación
+        return res.render('auth/registro', {
+            pagina: 'Crear cuenta',
+            errores: resultado.array(),
+            usuario: {
+                nombre: req.body.nombre,
+                email: req.body.email
+            }
+        })
+    }
 
-    const usuario = await Usuario.create(req.body)
+    const csrfSecret = req.session.csrfSecret;
+    const tokenFromForm = req.body._csrf;
 
-    res.json(usuario)
+    if (!tokens.verify(csrfSecret, tokenFromForm)) {
+        //* Mostrar mensaje de usuario no autenticado
+        return res.render('templates/mensaje', {
+            pagina: 'Usuario no autenticado',
+            mensaje: 'Hubo un problema al querer autenticar al usuario al mandar la información, intente nuevamente',
+            error: true
+        })
+    }
+
+    //* Extraemos la información con desestructuración 
+    const { nombre, email, password } = req.body
+
+    //* Verificar que el usuario no este duplicado
+    const existeUsuario = await Usuario.findOne({ where: { email } })
+
+    if (existeUsuario) {
+        return res.render('auth/registro', {
+            pagina: 'Crear cuenta',
+            errores: [{ msg: 'El usuario ya esta registrado' }],
+            usuario: {
+                nombre,
+                email
+            }
+        })
+    }
+
+    //* Almacenar un usuario
+    const usuario = await Usuario.create({
+        nombre,
+        email,
+        password,
+        token: generarId()
+    })
+
+    //* Envia email de confirmación 
+    emailRegistro({
+        nombre: usuario.nombre,
+        email: usuario.email,
+        token: usuario.token
+    })
+
+    //* Mostrar mensaje de confirmación de creacion de usuario
+    res.render('templates/mensaje', {
+        pagina: 'Cuenta creada correctamente',
+        mensaje: 'Hemos enviado un email de confirmación, presiona en el enlace'
+    })
+
+    return
+}
+
+//* Funcion que comprueba una cuenta
+const confirmar = async (req, res, next) => {
+
+    const { token } = req.params
+
+    //* Verificar si el token es valido
+    const usuario = await Usuario.findOne({ where: { token } })
+
+    if (!usuario) {
+        return res.render('auth/confirmar-cuenta', {
+            pagina: 'Error al confirmar tu cuenta',
+            mensaje: 'Hubo un error al confirmar tu cuenta, intentelo mas tarde',
+            error: true
+        })
+    }
+
+    //* Confirmar la cuenta
+
+    usuario.token = null;
+    usuario.confirmado = true;
+
+    await usuario.save();
+
+    res.render('auth/confirmar-cuenta', {
+        pagina: 'Cuenta confirmada',
+        mensaje: 'La cuenta se confirmo correctamente'
+    })
+
+
 }
 
 const formularioOlvidePassword = (req, res) => {
@@ -37,9 +130,10 @@ const formularioOlvidePassword = (req, res) => {
 }
 
 
-export{
+export {
     formularioLogin,
     formularioRegistro,
     registrar,
+    confirmar,
     formularioOlvidePassword
 }
