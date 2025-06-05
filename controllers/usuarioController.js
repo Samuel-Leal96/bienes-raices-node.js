@@ -1,15 +1,17 @@
 import Usuario from '../models/Usuario.js'
 import { csrfAutenticate } from '../helpers/csrf-autenticate.js'
-import { generarId } from '../helpers/tokens.js'
+import { generarJWT, generarId } from '../helpers/tokens.js'
 import { emailRegistro, emailOlvidePassword } from '../helpers/emails.js'
 
 import { check, validationResult } from 'express-validator'
 import bcrypt from 'bcrypt'
-import jwt from 'jsonwebtoken'
 
 const formularioLogin = (req, res) => {
+    const errores = req.session.errores || [];
+    req.session.errores = null;
     res.render('auth/login', {
-        pagina: 'Iniciar sesión'
+        pagina: 'Iniciar sesión',
+        errores
     })
 }
 
@@ -23,10 +25,12 @@ const autenticar = async (req, res) => {
     let resultado = validationResult(req); //* Me da el resultado de la validación 
 
     if (!resultado.isEmpty()) { //* Quiere decir que hay inputs que no pasaron la validación
-        return res.render('auth/login', {
-            pagina: 'Iniciar sesión',
-            errores: resultado.array()
-        });
+        req.session.errores = resultado.array();
+        return res.redirect('login');
+        // return res.render('auth/login', {
+        //     pagina: 'Iniciar sesión',
+        //     errores: resultado.array()
+        // });
     }
 
     //* Validar el token del form de CSRF
@@ -42,36 +46,42 @@ const autenticar = async (req, res) => {
     const user = await Usuario.findOne({where: {email}});
 
     if(!user){
-        return res.render('auth/login', {
-            pagina: 'Iniciar sesión',
-            errores: [ { msg: 'El usuario no existe' } ]
-        });
+        req.session.errores = [{ msg: "El usuario no existe" }];
+        return res.redirect('login');
+
+        // errorMsg = "El usuario no existe"
+        // return res.render('auth/login', {
+        //     pagina: 'Iniciar sesión',
+        //     errores: [ { msg: errorMsg } ]
+        // });
     }
 
     //* Comprobar si el usuario está confirmado
     if(!user.confirmado){
-        return res.render('auth/login', {
-            pagina: 'Iniciar sesión',
-            errores: [ { msg: 'Tu cuenta no ha sido confirmada' } ]
-        });
+        req.session.errores = [{ msg: "Tu cuenta no ha sido confirmada"}]
+        return res.redirect('login')
+
+        // errorMsg = "Tu cuenta no ha sido confirmada"
+        // return res.render('auth/login', {
+        //     pagina: 'Iniciar sesión',
+        //     errores: [ { msg: errorMsg } ]
+        // });
     }
 
     //* Revisar el password
     if(!user.verificarPassword(password)){
-        return res.render('auth/login', {
-            pagina: 'Iniciar sesión',
-            errores: [ { msg: 'El password es incorrecto' } ]
-        });
+        req.session.errores = [{ msg: "El password es incorrecto" }]
+        return res.redirect('login')
+        
+        // errorMsg = "El password es incorrecto"
+        // return res.render('auth/login', {
+        //     pagina: 'Iniciar sesión',
+        //     errores: [ { msg: errorMsg } ]
+        // });
     }
 
     //* Autenticar al usuario
-    const token = jwt.sign({
-        nombre: 'Samuel',
-        empresa: 'Codigo con Samuel',
-        tecnolgias: 'Node.js and Angular'
-    }, "firmaSamuelLealVega", {
-        expiresIn: '1d'
-    })
+    const token = generarJWT({ id: user.id, nombre: user.nombre })
 
     console.log(token);
 
