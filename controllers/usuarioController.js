@@ -13,6 +13,8 @@ const formularioLogin = (req, res) => {
 
 const autenticar = async (req, res) => {
 
+    //*Validamos los inputs del form del login
+
     await check('email').isEmail().withMessage('El email es obligatorio').run(req);
     await check('password').notEmpty().withMessage('El password es obligatorio').run(req);
 
@@ -22,16 +24,44 @@ const autenticar = async (req, res) => {
         return res.render('auth/login', {
             pagina: 'Iniciar sesión',
             errores: resultado.array()
-        })
+        });
     }
 
-    const autenticate = csrfAutenticate(req, res)
+    //* Validar el token del form de CSRF
+    const autenticate = csrfAutenticate(req, res);
 
     if (!autenticate) {
-        return
+        return;
     }
 
-    console.log('Autenticando...');
+    //*Comprobar si el usuario existe
+    const { email, password } = req.body;
+
+    const user = await Usuario.findOne({where: {email}});
+
+    if(!user){
+        return res.render('auth/login', {
+            pagina: 'Iniciar sesión',
+            errores: [ { msg: 'El usuario no existe' } ]
+        });
+    }
+
+    //* Comprobar si el usuario está confirmado
+    if(!user.confirmado){
+        return res.render('auth/login', {
+            pagina: 'Iniciar sesión',
+            errores: [ { msg: 'Tu cuenta no ha sido confirmada' } ]
+        });
+    }
+
+    //* Revisar el password
+    if(!user.verificarPassword(password)){
+        return res.render('auth/login', {
+            pagina: 'Iniciar sesión',
+            errores: [ { msg: 'El password es incorrecto' } ]
+        });
+    }
+
 }
 
 const formularioRegistro = async (req, res) => {
