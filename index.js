@@ -5,6 +5,7 @@ import session from 'express-session';
 import Tokens from 'csrf'
 import cookieParser from 'cookie-parser';
 import usuarioRoutes from './routes/usuarioRoutes.js'
+import propiedadesRoutes from './routes/propiedadesRoutes.js'
 import db from './config/db.js'
 
 const tokens = new Tokens()
@@ -54,7 +55,8 @@ app.use(async (req, res, next) => {
 });
 
 //* Routing
-app.use('/auth', usuarioRoutes) //* el metodo use busca todas las rutas que inicien con una diagonal a diferencia de get que usa la ruta especifica.
+app.use('/auth', usuarioRoutes); //* el metodo use busca todas las rutas que inicien con una diagonal a diferencia de get que usa la ruta especifica.
+app.use('/', propiedadesRoutes);
 
 //* Definir un puerto y arrancar el proyecto
 const port = process.env.PORT || 3000;
