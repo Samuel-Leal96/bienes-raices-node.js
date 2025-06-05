@@ -10,7 +10,7 @@ const emailRegistro = async (datos) => {
         }
     })
 
-    const { nombre, email, token} = datos
+    const { nombre, email, token } = datos
 
     //* Enviar email
     await transport.sendMail({
@@ -39,7 +39,7 @@ const emailOlvidePassword = async (datos) => {
         }
     })
 
-    const { nombre, email, token} = datos
+    const { nombre, email, token } = datos
 
     //* Enviar email
     await transport.sendMail({
