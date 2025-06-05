@@ -13,11 +13,11 @@ const csrfAutenticate = (req, res) => {
             error: true
         })
         return false
-    }else{
+    } else {
         return true
     }
 }
 
-export{
+export {
     csrfAutenticate
 }

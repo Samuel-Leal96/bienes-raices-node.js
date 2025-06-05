@@ -43,9 +43,9 @@ const autenticar = async (req, res) => {
     //*Comprobar si el usuario existe
     const { email, password } = req.body;
 
-    const user = await Usuario.findOne({where: {email}});
+    const user = await Usuario.findOne({ where: { email } });
 
-    if(!user){
+    if (!user) {
         req.session.errores = [{ msg: "El usuario no existe" }];
         return res.redirect('login');
 
@@ -57,8 +57,8 @@ const autenticar = async (req, res) => {
     }
 
     //* Comprobar si el usuario está confirmado
-    if(!user.confirmado){
-        req.session.errores = [{ msg: "Tu cuenta no ha sido confirmada"}]
+    if (!user.confirmado) {
+        req.session.errores = [{ msg: "Tu cuenta no ha sido confirmada" }]
         return res.redirect('login')
 
         // errorMsg = "Tu cuenta no ha sido confirmada"
@@ -69,10 +69,10 @@ const autenticar = async (req, res) => {
     }
 
     //* Revisar el password
-    if(!user.verificarPassword(password)){
+    if (!user.verificarPassword(password)) {
         req.session.errores = [{ msg: "El password es incorrecto" }]
         return res.redirect('login')
-        
+
         // errorMsg = "El password es incorrecto"
         // return res.render('auth/login', {
         //     pagina: 'Iniciar sesión',
@@ -84,7 +84,7 @@ const autenticar = async (req, res) => {
     const token = generarJWT({ id: user.id, nombre: user.nombre })
 
     //* Almacenar en un cookie
-    return res.cookie( '_token', token, {
+    return res.cookie('_token', token, {
         httpOnly: true,
         //secure: true,
         // sameSite: true
