@@ -1,9 +1,11 @@
-import { check, validationResult } from 'express-validator'
 import Usuario from '../models/Usuario.js'
+import { csrfAutenticate } from '../helpers/csrf-autenticate.js'
 import { generarId } from '../helpers/tokens.js'
 import { emailRegistro, emailOlvidePassword } from '../helpers/emails.js'
+
+import { check, validationResult } from 'express-validator'
 import bcrypt from 'bcrypt'
-import { csrfAutenticate } from '../helpers/csrf-autenticate.js'
+import jwt from 'jsonwebtoken'
 
 const formularioLogin = (req, res) => {
     res.render('auth/login', {
@@ -61,6 +63,17 @@ const autenticar = async (req, res) => {
             errores: [ { msg: 'El password es incorrecto' } ]
         });
     }
+
+    //* Autenticar al usuario
+    const token = jwt.sign({
+        nombre: 'Samuel',
+        empresa: 'Codigo con Samuel',
+        tecnolgias: 'Node.js and Angular'
+    }, "firmaSamuelLealVega", {
+        expiresIn: '1d'
+    })
+
+    console.log(token);
 
 }
 
