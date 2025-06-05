@@ -3,6 +3,7 @@
 import express from 'express' //* Sintaxis moderna de ECMAScript modules que es lo nativo de JavaScript
 import session from 'express-session';
 import Tokens from 'csrf'
+import cookieParser from 'cookie-parser';
 import usuarioRoutes from './routes/usuarioRoutes.js'
 import db from './config/db.js'
 
@@ -21,6 +22,9 @@ app.use(session({
 
 //*Habilitar lectura de datos de formularios
 app.use( express.urlencoded({extended: true}) ) //* Permite que Express lea los datos enviados por formularios HTML y los deje disponibles en req.body.
+
+//* Habilidar guardado de cookies
+app.use( cookieParser() )
 
 //* Conexion a la base de datos
 try {
