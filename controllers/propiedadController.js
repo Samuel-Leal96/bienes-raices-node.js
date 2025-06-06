@@ -5,7 +5,8 @@ const admin = (req, res) => {
     req.session.errores = null;
     res.render('propiedades/admin', {
         pagina: 'Mis propiedades',
-        errores
+        errores,
+        barra: true
     })
 }
 
