@@ -18,4 +18,14 @@
     .addTo(mapa)
 
 
+    //* Detectar el movimiento del PIN
+    marker.on('moveend', function(e){
+        marker = e.target;
+
+        const posicion = marker.getLatLng();
+
+        mapa.panTo(new L.LatLng(posicion.lat, posicion.lng))
+    })
+
+
 })()
