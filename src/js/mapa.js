@@ -4,6 +4,9 @@
     const mapa = L.map('mapa').setView([lat, lng ], 12);
 
     let marker;
+
+    //* Utilizar provider y geocoder de librerias en los scripts para obtener el nombre de la calle en base en las coordenadas.
+    const geocodeService = L.esri.Geocoding.geocodeService();
     
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -22,9 +25,18 @@
     marker.on('moveend', function(e){
         marker = e.target;
 
-        const posicion = marker.getLatLng();
+        const posicion = marker.getLatLng(); //* Obtenemos el objeto con latitud y longitud el PIN
 
         mapa.panTo(new L.LatLng(posicion.lat, posicion.lng))
+
+        //* Obtener la información de las calles al soltar el PIN
+        //* latlng(Objeto lat y long, zoom) 
+        geocodeService.reverse().latlng(posicion, 13).run(function(error, resultado){
+            console.error(error)
+            console.log(resultado);
+
+            marker.bindPopup(resultado.address.LongLabel)
+        })
     })
 
 
