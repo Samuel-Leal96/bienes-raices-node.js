@@ -32,10 +32,16 @@
         //* Obtener la información de las calles al soltar el PIN
         //* latlng(Objeto lat y long, zoom) 
         geocodeService.reverse().latlng(posicion, 13).run(function(error, resultado){
-            console.error(error)
+            //console.error(error);
             console.log(resultado);
 
             marker.bindPopup(resultado.address.LongLabel)
+
+            //*Llenar los campos abajo del mapa con la info del marker
+            document.querySelector('.calle').textContent = resultado?.address?.Address ?? '';
+            document.querySelector('#calle').value = resultado?.address?.Address ?? '';
+            document.querySelector('#lat').value = resultado?.latlng?.lat ?? '';
+            document.querySelector('#lng').value = resultado?.latlng?.lng ?? '';
         })
     })
 

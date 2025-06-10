@@ -70,7 +70,17 @@ block contenido
                                 - let wc = 1;
                                     while wc < 5
                                         option(value=wc) #{wc++}
-                    div#mapa(class="h-96")
+                    div(class="border-gray-200 border-t py-5 space-y-5")
+                        h3(class="text-lg leading-6 font-medium text-gray-900") Ubicación
+                        p(class="text-gray-600") Ubica la propiedad en el mapa
+                        div#mapa(class="h-96")
+
+                        div 
+                            p(class="calle")
+
+                        input(type="hidden" name="calle" id="calle")
+                        input(type="hidden" name="lat" id="lat")
+                        input(type="hidden" name="lng" id="lng")
 
 block scripts 
     script(src="https://unpkg.com/leaflet@1.8.0/dist/leaflet.js")
