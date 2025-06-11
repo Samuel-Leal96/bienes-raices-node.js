@@ -1,6 +1,10 @@
 import { exit } from 'node:process'
 import categorias from './categorias.js'
 import Categoria from '../models/Categoria.js'
+
+import precios from './precios.js'
+import Precio from '../models/Precio.js'
+
 import db from '../config/db.js'
 
 const importarDatos = async () => {
@@ -13,8 +17,15 @@ const importarDatos = async () => {
         //* Generar las columnas
         await db.sync()
 
-        //* Insertat los datos
-        await Categoria.bulkCreate(categorias)
+        //* Insertat los datos con dos awaits cuando uno depende del otro y los queremos ejecutar de forma independiente
+        // await Categoria.bulkCreate(categorias)
+        // await Precio.bulkCreate(precios)
+
+        //* Utilizamos promise all cuando un await no depende de otro y queremos que se ejecuten en paralelo osea al mismo tiempo
+        await Promise.all([
+            Categoria.bulkCreate(categorias),
+            Precio.bulkCreate(precios)
+        ])
 
         console.log('Datos importados correctamente');
 
