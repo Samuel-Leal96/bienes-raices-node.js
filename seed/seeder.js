@@ -2,6 +2,8 @@ import { exit } from 'node:process'
 import categorias from './categorias.js'
 import Categoria from '../models/Categoria.js'
 
+import Usuario from '../models/Usuario.js'
+
 import precios from './precios.js'
 import Precio from '../models/Precio.js'
 
@@ -37,9 +39,30 @@ const importarDatos = async () => {
     }
 }
 
+const eliminarDatos = async ()=> {
+    try {
+        // await Promise.all([
+        //     //* Ponemos truncate para que tambien elimine los espacios ocupados por los id.
+        //     Categoria.destroy({where: {}, truncate: true}),
+        //     Precio.destroy({where: {}, truncate: true})
+        // ])
+
+        await db.sync({ force: true });
+        console.log('Datos eliminados correctamente');
+        exit();
+    } catch (error) {
+        console.log(error);
+        exit(1);
+    }
+}
+
 //* Utilizamos argv para preguntar si en los argumentos del comando de la terminal viene -i entonces llamamos a importar datos
 //* Example: node ./seed/seeder.js -i, la primera posicion es node, la segunda es ./seed/seeder.js y -i es la tercera
 //* process quiere decir que es un proceso y lo ponemos porque estamos haciendo un script con node
 if(process.argv[2] === '-i'){
     importarDatos();
+}
+
+if(process.argv[2] === '-e'){
+    eliminarDatos();
 }
