@@ -2,8 +2,6 @@ import { exit } from 'node:process'
 import categorias from './categorias.js'
 import Categoria from '../models/Categoria.js'
 
-import Usuario from '../models/Usuario.js'
-
 import precios from './precios.js'
 import Precio from '../models/Precio.js'
 
