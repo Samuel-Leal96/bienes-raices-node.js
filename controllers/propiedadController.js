@@ -1,6 +1,5 @@
 import { validationResult } from 'express-validator'
-import Precio from '../models/Precio.js'
-import Categoria from '../models/Categoria.js'
+import {Precio, Categoria, Propiedad} from '../models/index.js'
 import { csrfAutenticate } from '../helpers/csrf-autenticate.js'
 
 const admin = (req, res) => {
@@ -13,7 +12,7 @@ const admin = (req, res) => {
     })
 }
 
-//* Formulario para crear una nueva propiedad
+//* Render de formulario para crear una nueva propiedad
 const formCrearPropiedad = async (req, res) => {
 
     //* Consultar Modelo de Precio y Categoria
@@ -41,6 +40,7 @@ const formCrearPropiedad = async (req, res) => {
     })
 }
 
+//* Funcion POST para guardar la propiedad
 const formGuardarPropiedad = async (req, res) => {
 
     //* Validación
@@ -76,6 +76,30 @@ const formGuardarPropiedad = async (req, res) => {
     if (!autenticate) {
         return;
     }
+
+    //* Guardar la propiedad en la DB
+
+    const { titulo, descripcion, habitaciones, estacionamiento, banio, calle, lat, lng, precio: precioId, categoria: categoriaId} = req.body
+
+    try {
+        
+        const propiedadGuardada = await Propiedad.create({
+            titulo,
+            descripcion,
+            habitaciones,
+            estacionamiento,
+            banio,
+            calle,
+            lat,
+            lng,
+            precioId,
+            categoriaId
+        })
+
+    } catch (error) {
+        console.log(error);
+    }
+
 
 }
 
