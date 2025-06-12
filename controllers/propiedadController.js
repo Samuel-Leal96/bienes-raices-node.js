@@ -16,8 +16,6 @@ const admin = (req, res) => {
 //* Formulario para crear una nueva propiedad
 const formCrearPropiedad = async (req, res) => {
 
-    console.log('Render crear propiedad');
-
     //* Consultar Modelo de Precio y Categoria
     const [categorias, precios] = await Promise.all([
         Categoria.findAll(),
@@ -25,15 +23,21 @@ const formCrearPropiedad = async (req, res) => {
     ])
 
 
+    //* Obtenemos los errores
     const errores = req.session.errores || [];
     req.session.errores = null;
+
+    //* Obtenemos los datos previamente introducidos por el usuario
+    const datos = req.session.datosForm || {}
+    req.session.datosForm = null;
 
     res.render('propiedades/crear', {
         pagina: 'Crear propiedad',
         errores,
         barra: true,
         categorias,
-        precios
+        precios,
+        datos
     })
 }
 
@@ -51,6 +55,7 @@ const formGuardarPropiedad = async (req, res) => {
         ])
 
         req.session.errores = resultado.array();
+        req.session.datosForm = req.body;
         req.session.categorias = categorias;
         req.session.precios = precios;
 
